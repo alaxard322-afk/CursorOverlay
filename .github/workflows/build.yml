@@ -1,4 +1,4 @@
-name: Build CursorOverlay
+name: Build CursorOverlay x86
 
 on:
   push:
@@ -13,12 +13,16 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Build
+    - name: Install 32-bit MinGW
       run: |
-        g++ main.cpp -o CursorOverlay.exe -mwindows -lgdi32 -luser32
+        choco install mingw -y
+
+    - name: Build x86
+      run: |
+        i686-w64-mingw32-g++ main.cpp -o CursorOverlay.exe -mwindows -lgdi32 -luser32
 
     - name: Upload EXE
       uses: actions/upload-artifact@v4
       with:
-        name: CursorOverlay
+        name: CursorOverlay-x86
         path: CursorOverlay.exe
