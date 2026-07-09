@@ -1,78 +1,45 @@
 #include <windows.h>
 
-HINSTANCE hInst;
-POINT mousePos;
-
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    switch(msg)
+    if (msg == WM_PAINT)
     {
-        case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hwnd, &ps);
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hwnd, &ps);
 
-            GetCursorPos(&mousePos);
+        HBRUSH brush = CreateSolidBrush(RGB(255,255,255));
+        FillRect(hdc, &ps.rcPaint, brush);
+        DeleteObject(brush);
 
-            SetBkMode(hdc, TRANSPARENT);
+        HPEN pen = CreatePen(PS_SOLID, 3, RGB(0,0,0));
+        SelectObject(hdc, pen);
 
-            HPEN pen = CreatePen(PS_SOLID, 3, RGB(0,0,0));
-            HPEN oldPen = (HPEN)SelectObject(hdc, pen);
+        MoveToEx(hdc, 25, 5, NULL);
+        LineTo(hdc, 25, 45);
 
-            MoveToEx(hdc, 20, 5, NULL);
-            LineTo(hdc, 20, 45);
+        MoveToEx(hdc, 5, 25, NULL);
+        LineTo(hdc, 45, 25);
 
-            MoveToEx(hdc, 5, 25, NULL);
-            LineTo(hdc, 45, 25);
+        DeleteObject(pen);
 
-            SelectObject(hdc, oldPen);
-            DeleteObject(pen);
-
-            EndPaint(hwnd, &ps);
-            break;
-        }
-
-        case WM_TIMER:
-        {
-            POINT p;
-            GetCursorPos(&p);
-
-            SetWindowPos(hwnd,
-                HWND_TOPMOST,
-                p.x-25,
-                p.y-25,
-                50,
-                50,
-                SWP_NOACTIVATE);
-
-            InvalidateRect(hwnd,NULL,FALSE);
-            break;
-        }
-
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            break;
+        EndPaint(hwnd, &ps);
+        return 0;
     }
 
     return DefWindowProc(hwnd,msg,wParam,lParam);
 }
 
 
-int WINAPI WinMain(HINSTANCE hInstance,
-                   HINSTANCE,
-                   LPSTR,
-                   int)
+int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE,LPSTR,int)
 {
-    hInst=hInstance;
-
-    WNDCLASS wc={0};
-    wc.lpfnWndProc=WndProc;
-    wc.hInstance=hInstance;
-    wc.lpszClassName="CursorOverlay";
+    WNDCLASS wc = {};
+    wc.lpfnWndProc = WndProc;
+    wc.hInstance = hInstance;
+    wc.lpszClassName = "CursorOverlay";
 
     RegisterClass(&wc);
 
-    HWND hwnd=CreateWindowEx(
+    HWND hwnd = CreateWindowEx(
         WS_EX_TOPMOST |
         WS_EX_LAYERED |
         WS_EX_TRANSPARENT |
@@ -83,15 +50,36 @@ int WINAPI WinMain(HINSTANCE hInstance,
         0,0,50,50,
         NULL,NULL,hInstance,NULL);
 
-    SetLayeredWindowAttributes(hwnd,0,255,LWA_ALPHA);
+    // делаем белый цвет прозрачным
+    SetLayeredWindowAttributes(
+        hwnd,
+        RGB(255,255,255),
+        0,
+        LWA_COLORKEY);
 
     ShowWindow(hwnd,SW_SHOW);
 
     SetTimer(hwnd,1,16,NULL);
 
     MSG msg;
+
     while(GetMessage(&msg,NULL,0,0))
     {
+        if(msg.message==WM_TIMER)
+        {
+            POINT p;
+            GetCursorPos(&p);
+
+            SetWindowPos(
+                hwnd,
+                HWND_TOPMOST,
+                p.x-25,
+                p.y-25,
+                50,
+                50,
+                SWP_NOACTIVATE);
+        }
+
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
