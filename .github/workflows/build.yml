@@ -23,7 +23,7 @@ jobs:
     - name: Build x86
       shell: msys2 {0}
       run: |
-        g++ main.cpp -o CursorOverlay.exe -mwindows -lgdi32 -luser32
+        g++ main.cpp -o CursorOverlay.exe -mwindows -static -static-libgcc -static-libstdc++ -lgdi32 -luser32
 
     - name: Upload EXE
       uses: actions/upload-artifact@v4
