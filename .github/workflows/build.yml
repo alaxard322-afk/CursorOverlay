@@ -13,13 +13,17 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Install 32-bit MinGW
-      run: |
-        choco install mingw -y
+    - name: Setup MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW32
+        update: true
+        install: mingw-w64-i686-gcc
 
     - name: Build x86
+      shell: msys2 {0}
       run: |
-        i686-w64-mingw32-g++ main.cpp -o CursorOverlay.exe -mwindows -lgdi32 -luser32
+        g++ main.cpp -o CursorOverlay.exe -mwindows -lgdi32 -luser32
 
     - name: Upload EXE
       uses: actions/upload-artifact@v4
